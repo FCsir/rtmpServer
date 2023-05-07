@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/rtmpServer.dir/main.cpp.o -o rtmpServer  utils/libutils.a -lavdevice -lavfilter -lavformat -lavcodec -lswresample -lswscale -lavutil 

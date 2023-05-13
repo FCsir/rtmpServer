@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include <sys/epoll.h>
 
-#include "tcp/tcp_epoll_server.h"
+#include "tcp_epoll_server.h"
 
 
 namespace rtmpserver
@@ -22,6 +22,10 @@ namespace transport
         : local_ip_{local_ip}, local_port_{local_port}
     {}
 
+    EpollTcpServer::~EpollTcpServer()
+    {
+        Stop();
+    }
 
     bool EpollTcpServer::Start()
     {
@@ -85,8 +89,8 @@ namespace transport
         }
 
         efd_ = epollfd;
+        return efd_;
     }
-
 
     int32_t EpollTcpServer::CreateSocket()
     {

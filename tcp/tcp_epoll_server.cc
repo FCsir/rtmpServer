@@ -64,6 +64,7 @@ namespace transport
         }
 
         th_loop_->detach();
+        std::cout << "EpollTcpServer start success!" << std::endl;
 
         return true;
     }
@@ -227,6 +228,8 @@ namespace transport
 
     void EpollTcpServer::RegisterOnRecvCallback(callback_recv_t callback)
     {
+        std::cout << "register callback" 
+                  << std::endl;
         recv_callback_ = callback;
     }
 
@@ -243,13 +246,13 @@ namespace transport
 
         while (( n = read(fd, read_buf, sizeof(read_buf))) > 0)
         {
-                std::cout << "fd: " << fd <<  " recv: " << read_buf << std::endl;
-                std::string msg(read_buf, n);
-                PacketPtr data = std::make_shared<Packet>(fd, msg);
-                if (recv_callback_)
-                {
-                    recv_callback_(data);
-                }
+            std::cout << "fd: " << fd << " recv: " << (read_buf[0] == 0x03) << std::endl;
+            std::string msg(read_buf, n);
+            PacketPtr data = std::make_shared<Packet>(fd, msg);
+            if (recv_callback_)
+            {
+                recv_callback_(data);
+            }
         }
 
         if (n == -1)
@@ -284,6 +287,7 @@ namespace transport
             return -1;
         }
 
+        std::cout << "data msg: " << data->msg.size() << std::endl;
         int r = write(data->fd, data->msg.data(), data->msg.size());
         if (r == -1) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {

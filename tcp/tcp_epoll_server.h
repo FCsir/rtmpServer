@@ -15,7 +15,6 @@ namespace transport
     static const int kEpollWaitTime = 10;
     static const int kMaxEvents = 100;
 
-
     // send/recv packet of msg
     typedef struct  Packet
     {

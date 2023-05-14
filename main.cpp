@@ -4,6 +4,8 @@
 
 
 #include "tcp/tcp_epoll_server.h"
+#include "tcp/rtmp_server.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -18,41 +20,21 @@ int main(int argc, char *argv[])
         local_port = std::atoi(argv[2]);
     }
 
-    typedef rtmpserver::transport::EpollTcpServer ETS;
+    typedef rtmpserver::transport::RTMPServer RTMPServer;
 
-    auto epoll_server = std::make_shared<ETS>(local_ip, local_port);
+    auto rtmp_server = std::make_shared<RTMPServer>(local_ip, local_port);
 
-    if (!epoll_server)
+    if (!rtmp_server)
     {
-        std::cout << "tcp server create failed !"
+        std::cout << "rtmp server create failed !"
                   << std::endl;
         exit(-1);
     }
 
-    typedef rtmpserver::transport::PacketPtr PacketPtr;
-    auto recv_call = [&](const PacketPtr &data) -> void
-    {
-        epoll_server->SendData(data);
-        return;
-    };
+    rtmp_server->Start();
 
-    epoll_server->RegisterOnRecvCallback(recv_call);
-
-    if(!epoll_server->Start())
-    {
-        std::cout << "tcp server start failed !"
-                  << std::endl;
-        exit(1);
-    }
-
-    std::cout << "########### tcp server started! #############"
+    std::cout << "########### rtmp server started! #############"
               << std::endl;
-    while (true)
-    {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    epoll_server->Stop();
 
     return 0;
 }

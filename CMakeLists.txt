@@ -20,6 +20,7 @@ message(${CMAKE_THREAD_LIBS_INIT} "found")
 
 add_subdirectory(utils)
 add_subdirectory(tcp)
+add_subdirectory(rtmp)
 
 add_executable(rtmpServer main.cpp)
 
@@ -31,6 +32,7 @@ target_link_libraries(
     ${CMAKE_THREAD_LIBS_INIT}
     utils
     tcp
+    rtmp
 )
 
 

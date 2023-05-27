@@ -4,9 +4,20 @@
 #include <string>
 #include <unistd.h>
 
+
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/detached.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/signal_set.hpp>
+#include <boost/asio/write.hpp>
+#include <cstdio>
+
 #include "rtmp_server.h"
-#include "tcp/tcp_epoll_server.h"
-#include "tcp/tcp_connection.h"
+#include "rtmp_connection.h"
+
+using boost::asio::ip::tcp;
+namespace this_coro = boost::asio::this_coro;
 
 namespace rtmpserver
 {
@@ -16,73 +27,41 @@ namespace transport
     RTMPServer::RTMPServer(const std::string &local_ip, uint16_t local_port)
         : local_ip_{local_ip}, local_port_{local_port}
     {
-        auto epoll_server = std::make_shared<EpollTcpServer>(local_ip, local_port);
+    }
 
-        if (!epoll_server)
+    boost::asio::awaitable<void> RTMPServer::listener()
+    {
+        auto executor = co_await this_coro::executor;
+        tcp::acceptor acceptor(executor, {tcp::v4(), local_port_});
+        for (;;)
         {
-            std::cout << "tcp server create failed !"
-                    << std::endl;
-            exit(-1);
+            tcp::socket socket = co_await acceptor.async_accept(boost::asio::use_awaitable);
+            connections.push_back(RtmpConnection(std::move(socket)));
         }
-
-        tcp_server_ = epoll_server;
-        tcp_server_.handleConnection(registerConnection)
     }
 
     void RTMPServer::Start()
     {
-        auto recv_call = [&](int fd) -> void
+        try
         {
-            std::cout << "receive tcp apcket"
-                      << std::endl;
-            triggerRead_(fd);
-            return;
-        };
+            boost::asio::io_context io_context(1);
 
-        tcp_server_->RegisterOnRecvCallback(recv_call);
+            boost::asio::signal_set signals(io_context, SIGINT, SIGTERM);
+            signals.async_wait([&](auto, auto){ io_context.stop(); });
 
-        if(!tcp_server_->Start())
+            boost::asio::co_spawn(io_context, listener(), boost::asio::detached);
+
+            io_context.run();
+        }
+        catch (std::exception& e)
         {
-            std::cout << "rtmp server start failed !"
-                    << std::endl;
-            exit(1);
+            std::printf("Exception: %s\n", e.what());
         }
 
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
-
-        tcp_server_->Stop();
-        
     }
 
     RTMPServer::~RTMPServer()
     {
-        // tcp_server_->Stop();
-    }
-
-    void RTMPServer::triggerRead_(int fd)
-    {
-        // TODO read msg
-    }
-
-    std::string RTMPServer::randomS0S1S2String_(int sed)
-    {
-        static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-        std::string tmp_s;
-        auto t = std::time(0);
-        std::cout << "t: " << t << std::endl;
-        srand(t + sed);
-        tmp_s.reserve(1528);
-
-        for (int i = 0; i < 1528; ++i) {
-            tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
-        }
-
-        return tmp_s;
     }
 
 } // end namespace transport

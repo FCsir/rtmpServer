@@ -3,36 +3,23 @@
 
 #include <string>
 #include <vector>
+#include <boost/asio/ip/tcp.hpp>
+
 namespace rtmpserver
 {
 namespace transport
 {
 
-class RtmpConnectionPublisher
+class RtmpConnection
 {
 
 public:
-    RtmpConnectionPublisher(int fd);
-    void handShake();
+    RtmpConnection(boost::asio::ip::tcp::socket s);
 
 private:
-    std::string push_url_;
-    int fd_;
-
-    std::vector<std::string &> msg_list_;
-};
-
-class RtmpConnectionReceiver
-{
-
-public:
-    RtmpConnectionReceiver(int fd);
-    void handShake();
-    void sendMsg();
-
-private:
-    std::string sub_url_;
-    int fd_;
+    boost::asio::ip::tcp::socket socket_;
+    boost::asio::awaitable<void> listen();
+    boost::asio::awaitable<void> handleMsg();
 };
 }
 }

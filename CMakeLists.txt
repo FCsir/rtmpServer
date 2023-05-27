@@ -24,7 +24,6 @@ pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
 message(${CMAKE_THREAD_LIBS_INIT} "found")
 
 add_subdirectory(utils)
-add_subdirectory(tcp)
 add_subdirectory(rtmp)
 add_subdirectory(tests)
 
@@ -37,7 +36,6 @@ target_link_libraries(
     rtmpServer
     ${CMAKE_THREAD_LIBS_INIT}
     utils
-    tcp
     rtmp
     tests
 )

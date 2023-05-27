@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
 
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/detached.hpp>
@@ -40,11 +41,12 @@ namespace transport
 
         std::string local_ip_;
         uint16_t local_port_;
-        std::vector<RtmpConnection> connections;
+        std::map<std::string, RtmpConnection> connections;
         boost::asio::awaitable<void> listener();
+
+        void runManageConnection();
+
     };
-
-
 
 } // end namespace transport
 } // end namespace rtmpserver

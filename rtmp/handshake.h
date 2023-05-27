@@ -3,30 +3,19 @@
 
 #include <string>
 
-#include <tcp/tcp_epoll_server.h>
-
 
 namespace rtmpserver
 {
 namespace transport
 {
 
-type struct C0C1
-{
-} C0C1;
-
-
-
-class C0C1
-{
 const static int rtmp_version = 0x03;
 
-public:
-    C0C1(const PacketPtr& packet_ptr);
-    C0C1() = default;
+struct C0C1 {};
 
-    void Write(int fd);
-    void Read();
+class HandShake
+{
+    
 };
 
 } // end transport

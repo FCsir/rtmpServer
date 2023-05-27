@@ -15,8 +15,8 @@ namespace rtmpserver
 namespace transport
 {
 
-    RtmpConnection::RtmpConnection(boost::asio::ip::tcp::socket s)
-        :socket_{std::move(s)}
+    RtmpConnection::RtmpConnection(boost::asio::ip::tcp::socket s, std::string& uuid)
+        :socket_{std::move(s)}, uuid_{uuid}
     {}
 
     boost::asio::awaitable<void> RtmpConnection::listen()
@@ -36,6 +36,7 @@ namespace transport
         catch (std::exception& e)
         {
             std::printf("echo Exception: %s\n", e.what());
+            is_connection_ = false;
         }
     }
 

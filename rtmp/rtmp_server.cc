@@ -6,6 +6,7 @@
 
 #include "rtmp_server.h"
 #include "tcp/tcp_epoll_server.h"
+#include "tcp/tcp_connection.h"
 
 namespace rtmpserver
 {
@@ -25,16 +26,16 @@ namespace transport
         }
 
         tcp_server_ = epoll_server;
+        tcp_server_.handleConnection(registerConnection)
     }
 
     void RTMPServer::Start()
     {
-        
-        auto recv_call = [&](const PacketPtr &data) -> void
+        auto recv_call = [&](int fd) -> void
         {
             std::cout << "receive tcp apcket"
                       << std::endl;
-            recvTcpPacket_(data);
+            triggerRead_(fd);
             return;
         };
 
@@ -60,67 +61,9 @@ namespace transport
         // tcp_server_->Stop();
     }
 
-    void RTMPServer::recvTcpPacket_(const PacketPtr &data)
+    void RTMPServer::triggerRead_(int fd)
     {
-        auto origin_msg = data->msg;
-        RTMPPacketPtr rtmp_data = std::make_shared<RTMPPacket>();
-        rtmp_data->tcp_packet_ptr = data;
-        // C1
-        if (origin_msg.size() == 1537)
-        {
-            if (origin_msg[0] != version_)
-            {
-                std::cout << "client version no match server client"
-                          << std::endl;
-                return;
-            }
-            rtmp_data->is_c0c1 = true;
-            // packet the orign msg
-            sendMsg_(rtmp_data);
-
-        } else if (origin_msg.size() == 1536){
-            // send c2
-            rtmp_data->is_c2 = true;
-        } else {
-            // parse normal msg
-            std::cout << "receive normal msg: " << (origin_msg[0] == 0x03)
-                        << "body size: " << origin_msg[4, 4 + 3]
-                        << "msg size: " << origin_msg.size()
-                        << std::endl;
-            // TD window acknowledgement size
-            // TD set peer bandwidth
-            // TD set chunk size
-        }
-
-    }
-
-    void RTMPServer::sendMsg_(RTMPPacketPtr &data)
-    {
-        if (data->is_c0c1) {
-            // send s0 s1 s2
-            std::string s0 = randomS0S1S2String_(1);
-            std::string s1 = randomS0S1S2String_(2);
-            std::string s2 = randomS0S1S2String_(3);
-            std::string msg = { version_ };
-            const char *timestamp = "00000000";
-            msg.append(timestamp);
-            msg.append(s0);
-
-            msg.append(timestamp);
-            msg.append(s1);
-
-            msg.append(timestamp);
-            msg.append(s2);
-
-            std::cout << "rtmp send data: " << msg.size() << std::endl;
-            tcp_server_->SendData(
-                std::make_shared<Packet>(data->tcp_packet_ptr->fd, msg));
-        } else if (data->is_c2) {
-
-        } else {
-
-        }
-
+        // TODO read msg
     }
 
     std::string RTMPServer::randomS0S1S2String_(int sed)

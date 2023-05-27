@@ -6,6 +6,7 @@
 #include <memory>
 #include <functional>
 #include <thread>
+#include "tcp_connection.h"
 
 namespace rtmpserver
 {
@@ -38,6 +39,7 @@ namespace transport
     typedef std::shared_ptr<Packet> PacketPtr;
 
     using callback_recv_t = std::function<void(const PacketPtr &data)>;
+    using register_tcp_connection = std::function<void(int fd)>;
 
     class EpollTcpBase {
     public:
@@ -85,6 +87,7 @@ namespace transport
         void OnSocketRead(int32_t fd);
         void OnSocketWrite(int32_t fd);
         void EpollLoop();
+        void handleConnection(register_tcp_connection register_func);
 
     private:
         std::string local_ip_;
@@ -94,7 +97,7 @@ namespace transport
         std::shared_ptr<std::thread> th_loop_ { nullptr };
         bool loop_flag_ { true };
         callback_recv_t recv_callback_ { nullptr };
-
+        register_tcp_connection register_connection_func_{nullptr};
     };
 
 } // end transport

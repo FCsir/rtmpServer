@@ -4,7 +4,8 @@
 #include <string>
 #include <memory>
 
-#include "tcp_epoll_server.h"
+#include "tcp/tcp_epoll_server.h"
+#include "tcp/tcp_connection.h"
 
 namespace rtmpserver
 {
@@ -42,11 +43,11 @@ namespace transport
 
         char version_ = 0x03;
 
+        void registerConnection(int fd);
+
         std::string randomS0S1S2String_(int sed);
 
-        void recvTcpPacket_(const PacketPtr &data);
-
-        void sendMsg_(RTMPPacketPtr &data);
+        void triggerRead_(int fd);
 
     };
 

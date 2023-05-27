@@ -12,6 +12,7 @@
 #include <sys/epoll.h>
 
 #include "tcp_epoll_server.h"
+#include "tcp_connection.h"
 
 
 namespace rtmpserver
@@ -222,6 +223,9 @@ namespace transport
                 close(cli_fd);
                 continue;
             }
+
+            // register fd
+            register_connection_func_(cli_fd);
         }
     }
 
@@ -236,6 +240,11 @@ namespace transport
     void EpollTcpServer::UnRegisterOnRecvCallback()
     {
         recv_callback_ = nullptr;
+    }
+
+    void EpollTcpServer::handleConnection(register_tcp_connection register_func)
+    {
+        register_connection_func_ = register_func;
     }
 
     void EpollTcpServer::OnSocketRead(int32_t fd)
@@ -321,7 +330,7 @@ namespace transport
                 {
                     std::cout << "fd:" << fd << " closed EPOLLRDHUP!" << std::endl;
                     close(fd);
-                } else if (events & EPOLLIN )
+                } else if (events & EPOLLIN)
                 {
                     std::cout << "epollin" << std::endl;
                     if (fd == handle_)

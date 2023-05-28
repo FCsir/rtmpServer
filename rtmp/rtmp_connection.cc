@@ -21,7 +21,7 @@ namespace transport
 
     boost::asio::awaitable<void> RtmpConnection::listen()
     {
-         try
+        try
         {
             for (;;)
             {
